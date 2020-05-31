@@ -41,7 +41,6 @@ function fileFilter(req, file, cb) {
   const ext = path.extname(file.originalname).toLowerCase();
 
   if(allowExt.indexOf(ext) > -1){
-    req.fileCheck = true;
     cb(null, true);
   }
   else{
