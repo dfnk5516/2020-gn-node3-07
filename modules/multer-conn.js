@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
 const multer = require('multer');
+const {allowExt} = require('./utils');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -13,7 +14,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({storage});
+const upload = multer({storage, fileFilter, limits:{fileSize : 2048000}}); // 2MB 용량 제한
 
 function makeFile(file) {
 	let oriName = file.originalname;	// abc.jpg
@@ -28,11 +29,26 @@ function makeFolder() {
 	const newPath = path.join(__dirname, "../upload/"+folderName);
 	if(!fs.existsSync(newPath)) {
 		fs.mkdir(newPath, (err) => {
-			if(err) next(err);
+			if(err) new Error(err);
 			return newPath;
 		});
 	}
 	return newPath;
+}
+
+function fileFilter(req, file, cb) {
+  // const allowExt = ['.jpg', '.jpeg', '.gif', '.png', '.pdf', '.zip'];
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if(allowExt.indexOf(ext) > -1){
+    req.fileCheck = true;
+    cb(null, true);
+  }
+  else{
+    req.fileCheck = ext.substr(1); // 확장자에서 .을 뺀 나머지
+    cb(null, false);
+  }
+  allowExt.indexOf(ext) > -1 ? cb(null, true) : cb(null, false);
 }
 
 module.exports = upload;

@@ -1,8 +1,9 @@
 const express = require('express');
+const path = require('path');
 const router = express.Router();
 const { pool } =require('../modules/mysql-conn');
 const moment = require('moment');
-const { alert } = require('../modules/utils');
+const { alert, imgExt } = require('../modules/utils');
 const pager = require('../modules/pager')
 const upload = require('../modules/multer-conn');
 
@@ -10,7 +11,7 @@ router.get(['/', '/list', '/list/:page'], async(req, res, next)=>{
   let page = req.params.page ? Number(req.params.page) : 1;
 
   req.app.locals.page = page;
-  console.log(req.app.locals.page)
+  // console.log(req.app.locals.page)
 
   // req.app.set('page', page);
   // console.log(req.app.get('page'));
@@ -18,6 +19,8 @@ router.get(['/', '/list', '/list/:page'], async(req, res, next)=>{
 
   let pugVals = {cssFile : 'board', jsFile : 'board'};
   let connect, result, sql;
+  // let allowExt = ['.jpg', '.jpeg', '.png', '.gif']
+
   try{
     connect = await pool.getConnection();
     sql = 'SELECT count(id) FROM board'; /* 전체 모든 레코드 개수 */
@@ -35,6 +38,12 @@ router.get(['/', '/list', '/list/:page'], async(req, res, next)=>{
     result[0].forEach((v)=>{
       v.created = moment(v.created).format('YYYY-MM-DD');
       // console.log('33');
+      if(v.savename){
+        if(imgExt.indexOf(path.extname(v.savename).toLowerCase()) > -1){
+          v.src = '/storage/' + v.savename.substr(0, 6) + '/' + v.savename;
+        }
+      }
+      return v;
     });    
 
     // res.json(result[0]); // 확인용
@@ -88,8 +97,15 @@ router.post('/save', upload.single('upfile'), async(req, res, next)=>{
     result = await connect.execute(sql, values);
     connect.release();
     // res.json(result);
-    if(result[0].affectedRows > 0) res.send(alert('저장되었습니다.', '/board')); // response redirect 대신 util로 location.href 처리
-    else res.send(alert('에러가 발생하였습니다.', '/board'));
+    if(result[0].affectedRows > 0){
+      if(req.fileCheck){
+        res.send(alert(req.fileCheck + '은(는) 업로드 할 수 없습니다. 파일 이외의 내용은 저장되었습니다.', '/board'));
+      }
+      else{
+        res.send(alert('저장되었습니다.', '/board')); // response redirect 대신 util로 location.href 처리
+      }
+    }
+    else res.send(alert('에러가 발생하였습니다.', '/board'));  
   }
   catch(e){
     connect.release();

@@ -5,5 +5,7 @@ const alert = (msg, location = null )=>{ // ES6 Default Value 지정 가능
   ${location ? "location.href = '" + location + "';" : ""}
   </script>`;
 }
+const imgExt = ['.jpg', '.jpeg', '.png', '.gif'];
+const allowExt = [...imgExt, '.pdf', '.zip'];
 
-module.exports = { alert }
+module.exports = { alert, imgExt, allowExt }
