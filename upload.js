@@ -3,7 +3,11 @@ const app = express();
 const path = require('path');
 const createError = require('http-errors');
 const multer = require('multer');
+/* 방법 1 */
 // const upload = multer({dest : path.join(__dirname, '/upload')});
+
+/* 방법 3 - module화 */
+const upload = require('./modules/multer-conn');
 require('dotenv').config();
 
 /* Server */
@@ -11,16 +15,17 @@ app.listen(process.env.PORT||3000, ()=>{
   console.log('http://127.0.0.1:' + process.env.PORT);
 });
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '/upload'))
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now())
-  }
-})
+/* 방법 2 */
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, path.join(__dirname, '/upload'))
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, file.fieldname + '-' + Date.now())
+//   }
+// })
 
-const upload = multer({storage})
+// const upload = multer({storage})
 
 /* Setting */
 app.set('view engine', 'pug');

@@ -8,23 +8,31 @@ const storage = multer.diskStorage({
     cb(null, makeFolder());
   },
   filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now())
+    // cb(null, file.fieldname + '-' + Date.now())
+    cb(null, makeFile(file));
   }
 });
 
 const upload = multer({storage});
 
+function makeFile(file) {
+	let oriName = file.originalname;	// abc.jpg
+	let ext = path.extname(oriName);	// .jpg
+	//200531-1523293823459-234.jpg
+	let newName = moment().format('YYMMDD') + '-' + Date.now() + '-' + Math.floor((Math.random() * 900 + 100)) + ext;
+	return newName;
+};
+
 function makeFolder() {
-  const folderName = moment().format('YYMMDD')
-  const newPath = path.join(__dirname, '../upload/' + folderName);
-  /* https://nodejs.org/dist/latest-v12.x/docs/api/fs.html#fs_fs_existssync_path */
-  if(!fs.existsSync(newPath)){
-    fs.mkdir(newPath, (err)=>{
-      if(err) next(err);
-      return newPath;
-    });
-    return newPath;
-  }
+	const folderName = moment().format("YYMMDD"); //200531
+	const newPath = path.join(__dirname, "../upload/"+folderName);
+	if(!fs.existsSync(newPath)) {
+		fs.mkdir(newPath, (err) => {
+			if(err) next(err);
+			return newPath;
+		});
+	}
+	return newPath;
 }
 
 module.exports = upload;

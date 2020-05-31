@@ -4,6 +4,7 @@ const { pool } =require('../modules/mysql-conn');
 const moment = require('moment');
 const { alert } = require('../modules/utils');
 const pager = require('../modules/pager')
+const upload = require('../modules/multer-conn');
 
 router.get(['/', '/list', '/list/:page'], async(req, res, next)=>{
   let page = req.params.page ? Number(req.params.page) : 1;
@@ -67,11 +68,20 @@ router.get('/update/:id', async(req, res,next)=>{
   }
 })
 
-router.post('/save', async(req, res, next)=>{
+router.post('/save', upload.single('upfile'), async(req, res, next)=>{
+  console.log(req.file);
   let {title, writer, comment, created=moment().format('YYYY-MM-DD HH:mm:ss')} = req.body;
   // const sql = 'INSERT INTO board SET title=?, writer=?, comment=?, created=now()'
   let sql = 'INSERT INTO board SET title=?, writer=?, comment=?, created=?';
   let values = [title, writer, comment, created];
+
+  if(req.file){
+    sql += ", oriname=?, savename=?"
+    values.push(req.file.originalname);
+    values.push(req.file.filename);
+  }
+
+
   let connect , result;
   try{
     connect = await pool.getConnection();
